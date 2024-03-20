@@ -84,7 +84,7 @@ def main():
                         tab.plotly_chart(
                             overview_component(y=filtered_df[groupbyCol[
                                 groupbyCol.str.contains('Views')]].mean(axis=0),
-                                title=f'Воронка просмотров', 
+                                title='Воронка просмотров', 
                                 diagType='funnel'),
                             theme="streamlit", use_container_width=True
                         )
@@ -95,7 +95,7 @@ def main():
                         for i, col in enumerate(cols):
                             col.plotly_chart(
                                 overview_component(filtered_df, gpc[i],
-                                    title=f'Распределение :: {gpc[i].strip('(fact)')}', 
+                                    title=f"Распределение :: {gpc[i].strip('(fact)')}", 
                                     diagType='box'),
                                 theme="streamlit", use_container_width=True
                             )
