@@ -10,10 +10,10 @@ def selector_component(df: pd.DataFrame):
     with col1:
         brand = st.selectbox(
         'Бренд',
-        df['Brands'].unique())
+        df['Brands'].unique(),1)
     with col2:
         status = st.selectbox(
-        'Статус', ['запущена','остановлена','приостановлена'])     
+        'Статус кампании', ['в процессе','истекла'], help='Истекло ли время публикации рекламы')     
     with col3:
         id_ = st.text_input('Поиск по ID',max_chars=df['id'].astype('str').str.len().max())
 
@@ -68,10 +68,21 @@ def overview_component(df = None, y = None, x = None, aggCol = None,
             xaxis_title=''
         )
     elif diagType == 'funnel':
-        fig = px.funnel_area(
-            names=['25%','50%','75%','100%'],
-            values=y if len(y) > 1 else y[0],
-            title=title)
+        y = y.values if len(y) > 1 else y[0]
+        fig = go.Figure(go.Funnelarea(
+            values = np.repeat(100,4)+np.hstack([[0],np.diff(y)*100]).cumsum() / y[0],
+            textinfo='value',
+            hovertext=[f'{y_ // 1000}k' for y_ in y],
+            labels= ['25%','50%','75%','100%'],
+        ))
+        fig.update_layout(
+        title={
+            'text':f'{title} (%)',
+            'y':0.9,
+            'x':0.5,
+            'xanchor': 'center',
+            'yanchor': 'top'})
+        fig.update_traces(hoverinfo="text", hovertemplate=None)
     elif diagType == 'hist':
         fig = px.bar(
             df, x=x, y=y, title=title, color=x

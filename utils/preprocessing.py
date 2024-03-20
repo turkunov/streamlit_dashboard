@@ -20,6 +20,9 @@ def strDateToDatetime(df: pd.DataFrame):
     df['Stop date'] = pd.to_datetime(df['Stop date'], format='%d.%m.%Y')
     return df
 
+def generateAdCosts(df: pd.DataFrame):
+    df['cost'] = np.random.randint(15_000, 500_000, (df.shape[0],))
+    return df
 
 def replaceAndRemNaN(df: pd.DataFrame):
     df = df.loc[:, ~((df.isna().sum().values / df.shape[0]) >= .9)]

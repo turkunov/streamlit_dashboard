@@ -3,7 +3,8 @@ from streamlit.components.v1 import html
 import plotly.express as px
 from components.general_stats_tab import total_stats_component
 from components.individual_stats_tab import selector_component, overview_component, hist_selector_component
-from utils.preprocessing import filter_df, strDateToDatetime, preprocess_percentage_cols, replaceAndRemNaN
+from utils.preprocessing import filter_df, strDateToDatetime, preprocess_percentage_cols, \
+    replaceAndRemNaN, generateAdCosts
 from utils.custom_metrics import cumret, vei
 import pandas as pd
 from datetime import datetime
@@ -34,6 +35,7 @@ if st.session_state['data'] is None:
                 # adding auxiliary metrics to the table
                 df = cumret(df)
                 df = vei(df)
+                df = generateAdCosts(df)
 
                 st.session_state['data'] = df
                 st.rerun()
