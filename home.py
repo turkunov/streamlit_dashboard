@@ -49,7 +49,7 @@ if st.session_state['data'] is None: # this is needed to keep track of df betwee
                     errormsg = "<script>alert('Загрузите файл с расширением .csv')</script>"
                     html(errormsg, height=0, width=0)
         else:
-            df=pd.read_csv('./auxiliary/data.csv')
+            df=pd.read_csv('data.csv')
             st.session_state['data']=full_df_preprocess(df)
             st.rerun()
     with warncol:
@@ -57,7 +57,7 @@ if st.session_state['data'] is None: # this is needed to keep track of df betwee
         Обратите внимание, что формат 
         входных данных должен соответствовать примеру:
         ''', icon='✴')
-        st.dataframe(pd.read_csv('./auxiliary/data.csv').head(4))
+        st.dataframe(pd.read_csv('data.csv').head(4))
 else:
     df = st.session_state['data']
     if st.button("Очистить дашборд", type="primary"):
