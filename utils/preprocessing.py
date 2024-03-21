@@ -92,5 +92,5 @@ def filter_df(df: pd.DataFrame, b,si,f,st,q,i,dt_int):
         ]
         return df
     return df[
-        df['id'] == int(i)
+        df['id'].isin([int(id_) for id_ in i])
     ]

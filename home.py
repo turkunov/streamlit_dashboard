@@ -238,7 +238,6 @@ def main():
                             theme="streamlit", use_container_width=True
                         )
             else:
-                filtered_df = filtered_df[filtered_df['id'] == int(id_)]
                 if filtered_df.shape[0] > 0:
                     groupbyCol = df.columns[df.columns.str.lower().str.contains('views')]
                     con.plotly_chart(
@@ -250,7 +249,7 @@ def main():
 
                     impressionCols = ['Impression (plan)', 'Impressions (fact)', 'Выполнение плана показов']
                     viewCols = ['Viewable impressions (fact)', 'Viewability rate % (fact)', 'Видимость показов']
-                    cnt = con.container(height=300,border=False)
+                    cnt = con.container(height=300)
                     gaugeCol1, gaugeCol2 = cnt.columns(2)
                     with gaugeCol1:
                         st.plotly_chart(
@@ -275,40 +274,44 @@ def main():
                                 size='sm'
                             )
                         )
-
-                    # extra metrics
-                    col1,col2 = con.columns(2)
-                    with col1:
-                        cont = st.container(height=300)
-                        cont.markdown('Праздники, приходящиеся на кампанию:')
-                        cont.dataframe(holidays_df[
-                            (holidays_df['date'].dt.date > filtered_df['Start date'].dt.date.values[0]) &
-                            (holidays_df['date'].dt.date < filtered_df['Stop date'].dt.date.values[0])],
-                            use_container_width=True)
-                    with col2:
-                        cont_1 = st.container(height=150)
-                        cont_1.metric('$vei$',f"{round(filtered_df['vei'].values[0]*100,2)}%")
-                        cont_1.markdown(f'''
-                            <div style="display:flex;justify-content:right;align-items:center;margin-bottom:10px;position:relative;top:-5.5rem;">
-                                <a style="display:block;width:10%;border-radius:25% 10%;text-decoration:none;color:#adadad;text-align:center;background:#262730;cursor:pointer;" href="/metrics#vei">
-                                    ℹ
-                                </a>
-                            </div>
-                        ''',unsafe_allow_html=True)
-
-                        cont_2 = st.container(height=150)
-                        cont_2.metric('cum_ret',f"{round(filtered_df['cum_ret'].values[0]*100,2)}%")
-                        cont_2.markdown(f'''
-                            <div style="display:flex;justify-content:right;align-items:center;margin-bottom:10px;position:relative;top:-5.5rem;">
-                                <a style="display:block;width:10%;border-radius:25% 10%;text-decoration:none;color:#adadad;text-align:center;background:#262730;cursor:pointer;" href="/metrics#cum-ret">
-                                    ℹ
-                                </a>
-                            </div>
-                        ''',unsafe_allow_html=True)
-
                 else:
                     con.header(f'Рекламная кампания с ID `{id_}` не найдена в датасете')
-            
+        
+            # extra metrics
+            col1,col2 = tab_private.columns(2)
+            with col1:
+                cont = st.container(height=317)
+                filtered_holidays = holidays_df[
+                    (holidays_df['date'].dt.month.isin(filtered_df['Start date'].dt.month.values))]
+                filtered_holidays['date'] = filtered_holidays['date'].dt.strftime('%d/%m')
+                filtered_holidays.columns=['Праздник','Дата (д/м)']
+                cont.markdown('Праздники, приходящиеся на кампанию(и):')
+                cont.data_editor(filtered_holidays.set_index('Дата (д/м)'),
+                    use_container_width=True)
+            with col2:
+                cont_1 = st.container(height=150)
+                veiIndex = round(filtered_df['vei'].mean()*100,2) if len(id_) == 0 \
+                      else round(filtered_df['vei'].values[0]*100,2)
+                cumretIndex = round(filtered_df['cum_ret'].mean()*100,2) if len(id_) == 0 \
+                      else round(filtered_df['cum_ret'].values[0]*100,2)
+                cont_1.metric('$vei$',f"{veiIndex}%")
+                cont_1.markdown(f'''
+                    <div style="display:flex;justify-content:right;align-items:center;margin-bottom:10px;position:relative;top:-5.5rem;">
+                        <a style="display:block;width:10%;border-radius:25% 10%;text-decoration:none;color:#adadad;text-align:center;background:#262730;cursor:pointer;" href="/metrics#vei">
+                            ℹ
+                        </a>
+                    </div>
+                ''',unsafe_allow_html=True)
+
+                cont_2 = st.container(height=150)
+                cont_2.metric('cum_ret',f"{cumretIndex}%")
+                cont_2.markdown(f'''
+                    <div style="display:flex;justify-content:right;align-items:center;margin-bottom:10px;position:relative;top:-5.5rem;">
+                        <a style="display:block;width:10%;border-radius:25% 10%;text-decoration:none;color:#adadad;text-align:center;background:#262730;cursor:pointer;" href="/metrics#cum-ret">
+                            ℹ
+                        </a>
+                    </div>
+                ''',unsafe_allow_html=True)
 
 if __name__ == '__main__':
     main()

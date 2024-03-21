@@ -22,7 +22,10 @@ def selector_component(df: pd.DataFrame):
             format="MM.DD.YYYY",
         )
     with col4:
-        id_ = st.text_input('Поиск по ID',max_chars=df['id'].astype('str').str.len().max())
+        id_ = st.multiselect(
+        'Поиск по ID',
+        df['id'].astype(str).unique(),
+        [], max_selections=1)
     
     col5,col6,col7=st.columns(3)
     with col5:
