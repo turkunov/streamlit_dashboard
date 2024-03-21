@@ -11,7 +11,7 @@ def selector_component(df: pd.DataFrame):
     with col1:
         brand = st.selectbox(
         'Бренд',
-        df['Brands'].unique(),1)
+        df['Brands'].unique(),2)
     with col2:
         status = st.selectbox(
         'Статус кампании', ['в процессе','истекла'], 1, help='Истекло ли время публикации рекламы')     
@@ -98,8 +98,8 @@ def overview_component(df = None, y = None, x = None, aggCol = None,
             )
         fig.update_layout(
             autosize=True,
-            width=300 if kwargs['size'] == 'sm' else 512,
-            height=300 if kwargs['size'] == 'sm' else 512
+            width=275 if kwargs['size'] == 'sm' else 512,
+            height=275 if kwargs['size'] == 'sm' else 512
         )
     elif diagType == 'timeSer':
         fig = px.area(df, x=x, y=y,
