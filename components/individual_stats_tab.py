@@ -94,7 +94,39 @@ def overview_component(df = None, y = None, x = None, aggCol = None,
             gauge = kwargs['gauge'],
             delta = kwargs['delta'],
             domain = {'x': [0, 1], 'y': [0, 1]},
-            title = {'text': title}))
+            title = {'text': title}),
+            )
+        fig.update_layout(
+            autosize=True,
+            width=300 if kwargs['size'] == 'sm' else 512,
+            height=300 if kwargs['size'] == 'sm' else 512
+        )
+    elif diagType == 'timeSer':
+        fig = px.area(df, x=x, y=y,
+              hover_data={x: "|%B %d, %Y"},
+              title=title
+              )
+        fig.update_xaxes(
+            dtick="M1",
+            ticklabelmode="period",
+            tickformat="%b\n%Y",
+            rangeslider_visible=True,
+            rangeselector=dict(
+                buttons=list([
+                    dict(count=1, label="месяц", step="month", stepmode="backward"),
+                    dict(count=6, label="полгода", step="month", stepmode="backward"),
+                    dict(count=1, label="текущий год", step="year", stepmode="todate"),
+                    dict(step="all", label='полностью')
+                ])
+            ),
+        )
+        fig.update_traces(
+            line_color='#8b79f2'
+        )
+        fig.update_layout(
+            yaxis_title=y,
+            xaxis_title='Временное окно'
+        )
     elif diagType == 'hist':
         fig = px.bar(
             df, x=x, y=y, title=title, color=x

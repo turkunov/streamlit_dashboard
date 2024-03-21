@@ -154,25 +154,31 @@ def main():
                         # impressions gauge plot
                         impressionCols = ['Impression (plan)', 'Impressions (fact)', 'Выполнение плана показов']
                         viewCols = ['Viewable impressions (fact)', 'Viewability rate % (fact)', 'Видимость показов']
-                        tab.plotly_chart(
-                            overview_component(
-                                x=filtered_df[impressionCols[1]].mean() // 1000,
-                                diagType='gauge',
-                                title=impressionCols[2],
-                                delta={'reference': filtered_df[impressionCols[0]].mean() // 1000},
-                                gauge={'axis': {'range': [None,filtered_df[impressionCols[0]].mean() // 1000]}}
+                        cnt = tab.container(height=300,border=False)
+                        gaugeCol1, gaugeCol2 = cnt.columns(2)
+                        with gaugeCol1:
+                            st.plotly_chart(
+                                overview_component(
+                                    x=filtered_df[impressionCols[1]].mean() // 1000,
+                                    diagType='gauge',
+                                    title=impressionCols[2],
+                                    delta={'reference': filtered_df[impressionCols[0]].mean() // 1000},
+                                    gauge={'axis': {'range': [None,filtered_df[impressionCols[0]].mean() // 1000]}},
+                                    size='sm'
+                                )
                             )
-                        )
                         # views gauge plot
-                        tab.plotly_chart(
-                            overview_component(
-                                x=(filtered_df[viewCols[1]]*filtered_df[viewCols[0]]).mean() // 1000,
-                                diagType='gauge',
-                                title=viewCols[2],
-                                delta={'reference':filtered_df[viewCols[0]].mean() // 1000},
-                                gauge={'axis': {'range': [None,filtered_df[viewCols[0]].mean() // 1000]}}
+                        with gaugeCol2:
+                            st.plotly_chart(
+                                overview_component(
+                                    x=(filtered_df[viewCols[1]]*filtered_df[viewCols[0]]).mean() // 1000,
+                                    diagType='gauge',
+                                    title=viewCols[2],
+                                    delta={'reference':filtered_df[viewCols[0]].mean() // 1000},
+                                    gauge={'axis': {'range': [None,filtered_df[viewCols[0]].mean() // 1000]}},
+                                    size='sm'
+                                )
                             )
-                        )
                             
                     else: # if it is CTR or reach
                         gpc = groupbyCol.values[0]
@@ -180,6 +186,17 @@ def main():
                             overview_component(filtered_df, gpc,
                                 title=f'Распределение :: {gpc}', 
                                 diagType='box'),
+                            theme="streamlit", use_container_width=True
+                        )
+
+                        # plotting time series
+                        timeSerData = pd.DataFrame(
+                            df.groupby('Start date')[gpc].agg('mean')
+                        ).reset_index()
+                        tab.plotly_chart(
+                            overview_component(timeSerData, gpc, 'Start date',
+                                title=f'Распределение :: {gpc}', 
+                                diagType='timeSer'),
                             theme="streamlit", use_container_width=True
                         )
 
