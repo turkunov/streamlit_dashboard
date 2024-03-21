@@ -24,6 +24,20 @@ def generateAdCosts(df: pd.DataFrame):
     df['cost'] = np.random.randint(15_000, 500_000, (df.shape[0],))
     return df
 
+def distinguishBadRows(row):
+    badCondsMet = {
+        'Views 25%-100% не монотонно убывают': row['cum_ret'] > 1,
+        'Отношение Viewability Rate больше 100%': row['Viewability rate % (fact)'] > 1,
+        'Impressions меньше Viewable impressions': row['Impressions (fact)'] < row['Viewable impressions (fact)']
+    }
+    badCondsMet = dict(filter(lambda x: x[1], badCondsMet.items()))
+    if len(badCondsMet) > 0:
+        return list(badCondsMet.keys())
+    return []
+
+def highlightRows(row, cond, color):
+    return [f'background-color:{color}']*len(row) if len(row[cond])>0 else None
+
 def replaceAndRemNaN(df: pd.DataFrame):
     df = df.loc[:, ~((df.isna().sum().values / df.shape[0]) >= .9)]
     df = df[~df['id'].isna()]
@@ -35,7 +49,7 @@ def replaceAndRemNaN(df: pd.DataFrame):
             df[col].replace(np.nan, df[col].mode()[0], inplace=True)
     return df
 
-def filter_df(df: pd.DataFrame, b,si,f,st,q,i):
+def filter_df(df: pd.DataFrame, b,si,f,st,q,i,dt_int):
     """
     b: str
      - brand name
@@ -67,7 +81,14 @@ def filter_df(df: pd.DataFrame, b,si,f,st,q,i):
                 (np.isin(df['Start date'].dt.month,qs) |
                 np.isin(df['Stop date'].dt.month,qs)) if len(q) > 0 \
                 else True
-            )
+            ) &
+            (
+                ((df['Stop date'].dt.date > datetime.today().date()) & (st == 'в процессе')) |
+                ((df['Stop date'].dt.date < datetime.today().date()) & (st == 'истекла'))
+            ) &
+            (((df['Start date'].dt.date >= dt_int[0]) &
+             (df['Stop date'].dt.date <= dt_int[1])) if len(dt_int) == 2 \
+            else True)
         ]
         return df
     return df[

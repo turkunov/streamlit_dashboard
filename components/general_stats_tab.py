@@ -2,12 +2,13 @@ import streamlit as st
 
 def total_stats_component(df):
     cols2desc = {
-        'Reach 1+ (fact)': 'Охват: '+f"{round(df['Reach 1+ (fact)'].mean() // 1000, 2)}k",
-        'Viewable impressions (fact)': 'Показы: '+f"{round(df['Viewable impressions (fact)'].mean() // 1000, 2)}k",
-        'Impressions (delta)': '$\\Delta_{показов}$:',
-        'Click (fact)': 'Клики: '+f"{round(df['Click (fact)'].mean() // 1000, 2)}k",
-        'cost': 'Расходы: '+f"RUB {round(df['cost'].mean() // 1000, 2)}k",
-        'cpc': 'CPC: '+f"RUB {round((df['cost'] / df['Click (fact)']).mean(), 2)}",
+        'Reach 1+ (fact)': {'label': 'Охват', 'value': f"{round(df['Reach 1+ (fact)'].mean() // 1000, 2)}k"},
+        'Viewable impressions (fact)': {'label': 'Показы', 
+            'value': f"{round(df['Viewable impressions (fact)'].mean() // 1000, 2)}k"},
+        'Impressions (delta)': {'label': '$\\Delta_{показов}$'},
+        'Click (fact)': {'label': 'Клики:', 'value': f"{round(df['Click (fact)'].mean() // 1000, 2)}k"},
+        'cost':  {'label': 'Расходы:', 'value': f"RUB {round(df['cost'].mean() // 1000, 2)}k"},
+        'cpc': {'label': 'CPC:', 'value': f"RUB {round((df['cost'] / df['Click (fact)']).mean(), 2)}"}
         # 'cum_ret': '$\overline{\\text{cum-ret}}$:'+f"{round(df['cum_ret'].mean() * 100, 2)}%",
         # 'vei': '$\overline{vei}$:'+f"{round(df['vei'].mean() * 100, 2)}%",
     }
@@ -33,19 +34,24 @@ def total_stats_component(df):
             delta = f"{round(df['Impressions (delta)'].mean() * 100, 2)}%"
             delta_than_half = float(delta.strip('%')) > 0
             cnt.markdown(
-                cols2desc[total_cols[i]]+
+                cols2desc[total_cols[i]]['label']+
                 f'''
-                    <p style=color:{"#64f57a" if delta_than_half > 0 else "#f56964"}>
-                        {("+" if delta_than_half else "-")+delta}
-                    </p>
+                    <h1 style=color:{"#64f57a" if delta_than_half > 0 else "#f56964"};font-weight:100;display:block;position:relative;top:-2.5rem>
+                        {("+" if delta_than_half else "")+delta}
+                    </h1>
                 ''', unsafe_allow_html=True
             )
         else:
-            cnt.markdown(cols2desc[total_cols[i]])
+            cnt.metric(cols2desc[total_cols[i]]['label'], cols2desc[total_cols[i]]['value'])
+            # cnt.markdown(cols2desc[total_cols[i]])
     
     cols_ = st.columns(3)
     for i, col in enumerate(cols_):
         cnt = col.container(height=120)
-        cnt.markdown(cols2desc[total_cols[i+3]])
-        if 'cost' in total_cols[i+3]:
-            cnt.text('',help='Для каждой рекламы была сгенерирована сумма затрат из интервала [15k; 500k]')
+        cnt.metric(
+            cols2desc[total_cols[i+3]]['label'], 
+            cols2desc[total_cols[i+3]]['value'],
+            help='Для каждой рекламы была сгенерирована \
+                сумма затрат из интервала [15k; 500k]' if 'cost' \
+                    in total_cols[i+3] else None
+        )
