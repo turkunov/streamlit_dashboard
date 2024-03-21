@@ -3,7 +3,8 @@ from streamlit.components.v1 import html
 import plotly.express as px
 import numpy as np
 from components.general_stats_tab import total_stats_component
-from components.individual_stats_tab import selector_component, overview_component, hist_selector_component
+from components.individual_stats_tab import selector_component, overview_component, \
+    hist_selector_component, timeSer_selector_component, additionalTimeSer_selector
 from utils.preprocessing import filter_df, strDateToDatetime, preprocess_percentage_cols, \
     replaceAndRemNaN, generateAdCosts, distinguishBadRows, highlightRows
 from utils.scrapers import holidays_lookup
@@ -109,7 +110,7 @@ def main():
             filtered_df = filter_df(df,brand,site,format,status,q,id_,
                                     dt_int)
             total_stats_component(filtered_df)
-            con = st.container(height=600)
+            con = st.container(height=700)
             if len(id_) == 0:
                 individual_tabs = ['Охват', 'CTR %', 'Просмотры']
                 tab2metric = {
@@ -128,6 +129,20 @@ def main():
                                 groupbyCol.str.contains('Views')]].mean(axis=0),
                                 title='Воронка просмотров', 
                                 diagType='funnel'),
+                            theme="streamlit", use_container_width=True
+                        )
+
+                        #time series plot
+                        tsCol1, tsCol2 = tab.columns(2)
+                        with tsCol1:
+                            timeCol = timeSer_selector_component(filtered_df,i)
+                        with tsCol2:
+                            mainTimeCol = additionalTimeSer_selector(groupbyCol,i+1)
+                        tab.plotly_chart(
+                            overview_component(filtered_df, mainTimeCol, 'Start date',
+                                timeCol,diagType='timeSer',
+                                title=f'Распределение {mainTimeCol} по датам', 
+                            ),
                             theme="streamlit", use_container_width=True
                         )
 
@@ -158,7 +173,8 @@ def main():
                                     diagType='hist'),
                                 theme="streamlit", use_container_width=True
                             )
-
+                        
+                        tab.divider()
                         # impressions gauge plot
                         impressionCols = ['Impression (plan)', 'Impressions (fact)', 'Выполнение плана показов']
                         viewCols = ['Viewable impressions (fact)', 'Viewability rate % (fact)', 'Видимость показов']
@@ -190,24 +206,23 @@ def main():
                             
                     else: # if it is CTR or reach
                         gpc = groupbyCol.values[0]
+                        # time series graph
+                        timeCol = timeSer_selector_component(filtered_df,i,tab)
+                        tab.plotly_chart(
+                            overview_component(filtered_df, gpc, 'Start date',
+                                timeCol,diagType='timeSer',
+                                title=f'Распределение {gpc} по датам', 
+                            ),
+                            theme="streamlit", use_container_width=True
+                        )
+                        # overall dist graph
                         tab.plotly_chart(
                             overview_component(filtered_df, gpc,
-                                title=f'Распределение :: {gpc}', 
+                                title=f'Общее распределение {gpc}', 
                                 diagType='box'),
                             theme="streamlit", use_container_width=True
                         )
-
-                        # plotting time series
-                        timeSerData = pd.DataFrame(
-                            df.groupby('Start date')[gpc].agg('mean')
-                        ).reset_index()
-                        tab.plotly_chart(
-                            overview_component(timeSerData, gpc, 'Start date',
-                                title=f'Распределение :: {gpc}', 
-                                diagType='timeSer'),
-                            theme="streamlit", use_container_width=True
-                        )
-
+                        tab.divider()
                         # plotting historgrams
                         selectedCol, sorting = hist_selector_component(
                             filtered_df, gpc+str(i), tab)

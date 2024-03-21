@@ -60,6 +60,36 @@ def hist_selector_component(df: pd.DataFrame, key: int, t):
         sorting = t.checkbox('Сортировка', key=key+'2')
     return selectedCol, sorting
 
+def timeSer_selector_component(df: pd.DataFrame, key: int, t = None):
+    groupByCols = df.columns[
+        (df.nunique().values < 15) & 
+        ~df.columns.str.lower().str.contains(
+            r'\%|brands|date|cum|vei|duration|skippable|rotation')]
+    if t is not None:
+        selectedCol = t.selectbox(
+            'Столбец для группировки статистики',
+            groupByCols, key=key, format_func=lambda x: f'Столбец "{x}"'
+        )
+    else:
+        selectedCol = st.selectbox(
+            'Столбец для группировки статистики',
+            groupByCols, key=key, format_func=lambda x: f'Столбец "{x}"'
+        )
+    return selectedCol
+
+def additionalTimeSer_selector(keys: list, key:int, t = None):
+    if t is not None:
+        selectedCol = t.selectbox(
+            'Столбец для изучения',
+            keys, key=key, format_func=lambda x: f'Метрика "{x}"'
+        )
+    else:
+        selectedCol = st.selectbox(
+            'Столбец для изучения',
+            keys, key=key, index=1, format_func=lambda x: f'Метрика "{x}"'
+        )
+    return selectedCol
+
 def overview_component(df = None, y = None, x = None, aggCol = None, 
                        diagType = None, title = None, ylabel = None, **kwargs):
     if diagType == 'box':
@@ -103,9 +133,10 @@ def overview_component(df = None, y = None, x = None, aggCol = None,
         )
     elif diagType == 'timeSer':
         fig = px.area(df, x=x, y=y,
+              color=aggCol,
               hover_data={x: "|%B %d, %Y"},
               title=title
-              )
+            )
         fig.update_xaxes(
             dtick="M1",
             ticklabelmode="period",
@@ -121,12 +152,14 @@ def overview_component(df = None, y = None, x = None, aggCol = None,
             ),
         )
         fig.update_traces(
-            line_color='#8b79f2'
+            # line_color='#8b79f2'
         )
         fig.update_layout(
             yaxis_title=y,
             xaxis_title='Временное окно'
         )
+        if df[aggCol].astype(str).str.len().max() > 15:
+            fig.update_layout(showlegend=False)
     elif diagType == 'hist':
         fig = px.bar(
             df, x=x, y=y, title=title, color=x
