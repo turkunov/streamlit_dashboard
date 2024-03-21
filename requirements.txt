@@ -3,3 +3,5 @@ streamlit
 numpy
 pandas
 scipy
+urllib3
+beautifulsoup4
