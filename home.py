@@ -89,12 +89,25 @@ def main():
             tooltips_df.columns = ['errors']
             general_df = pd.concat([tooltips_df, df], axis=1)
             
-            background_col = general_df.keys()[12:36]
-            
-            
-            general_df = general_df.style.background_gradient(cmap='YlGn', subset=background_col)
-            st.write("### Обзор", general_df)
 
+
+            st.data_editor(
+                general_df.style \
+                .apply(lambda r: 
+                       highlightRows(r,'errors','#f06451'),
+                    axis=1),
+                column_config={
+                    "errors": st.column_config.ListColumn(
+                        "Ошибки ⓘ",
+                        help="Столбец подсвечивается красным, если в одном из \
+                            полей допущена ошибка. Выводит список найденных \
+                                ошибок, которые необходимо исправить.",
+                        width="medium",
+                    ),
+                },
+                num_rows="dynamic"
+            )
+            
 
 
 
