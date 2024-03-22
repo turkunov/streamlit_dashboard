@@ -88,22 +88,48 @@ def main():
             tooltips_df = pd.DataFrame(badRows2Errs.values)
             tooltips_df.columns = ['errors']
             general_df = pd.concat([tooltips_df, df], axis=1)
-            st.data_editor(
-                general_df.style \
-                .apply(lambda r: 
-                       highlightRows(r,'errors','#f06451'),
-                    axis=1),
-                column_config={
-                    "errors": st.column_config.ListColumn(
-                        "Ошибки ⓘ",
-                        help="Столбец подсвечивается красным, если в одном из \
-                            полей допущена ошибка. Выводит список найденных \
-                                ошибок, которые необходимо исправить.",
-                        width="medium",
-                    ),
-                },
-                num_rows="dynamic"
-            )
+            
+            background_col = general_df.keys()[12:36]
+            
+            
+            general_df = general_df.style.background_gradient(cmap='YlGn', subset=background_col)
+            st.write("### Обзор", general_df)
+
+
+
+
+           
+
+
+            brands = df['Brands'].unique()
+            
+            tab1, tab2 = st.tabs(["CTR", "Viewable impressions"])
+            with tab1:
+                brand_ctr_tmp = []
+                for brand in brands:
+                    value = df[df.Brands == brand]["CTR % (fact)"].mean()
+                    brand_ctr_tmp.append(value)
+
+                brands_ctr = pd.DataFrame({'brands': brands, 'value': brand_ctr_tmp})
+                fig_ctr = px.bar(brands_ctr, x='brands', y='value')
+                st.plotly_chart(fig_ctr, theme="streamlit", use_container_width=True)
+
+
+
+            with tab2:
+                brands_impressions_tmp = []
+                for brand in brands:
+                    value = df[df.Brands == brand]["Viewable impressions (fact)"].sum()
+                    brands_impressions_tmp.append(value)
+
+                brands_impressions = pd.DataFrame({'brands': brands, 'value': brands_impressions_tmp})
+
+                fig_ctr_impressions = px.pie(brands_impressions, values='value', names='brands')
+                st.plotly_chart(fig_ctr_impressions, theme="streamlit", use_container_width=True)
+
+
+
+
     with tab_private:
         if df is not None:
             brand, site, format, status, q, id_, dt_int = selector_component(df)
