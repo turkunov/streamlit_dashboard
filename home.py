@@ -89,14 +89,14 @@ def main():
             tooltips_df.columns = ['errors']
             general_df = pd.concat([tooltips_df, df], axis=1)
             
-            background_col = list(general_df.keys()[12:20]) + list(general_df.keys()[33:36])
+            background_col = list(general_df.keys()[12:25]) + list(general_df.keys()[33:36])
 
             general_df = general_df.style.background_gradient(cmap='YlGn', subset=background_col)
             st.write("### Обзор", general_df)
 
             brands = df['Brands'].unique()
             
-            tab1, tab2 = st.tabs(["CTR", "Viewable impressions"])
+            tab1, tab2, tab3 = st.tabs(["CTR", "Viewable impressions (Brands)", "Viewable impressions (Site)"])
             with tab1:
                 brand_ctr_tmp = []
                 for brand in brands:
@@ -107,8 +107,6 @@ def main():
                 fig_ctr = px.bar(brands_ctr, x='brands', y='value')
                 st.plotly_chart(fig_ctr, theme="streamlit", use_container_width=True)
 
-
-
             with tab2:
                 brands_impressions_tmp = []
                 for brand in brands:
@@ -117,10 +115,22 @@ def main():
 
                 brands_impressions = pd.DataFrame({'brands': brands, 'value': brands_impressions_tmp})
 
-                fig_ctr_impressions = px.pie(brands_impressions, values='value', names='brands')
-                st.plotly_chart(fig_ctr_impressions, theme="streamlit", use_container_width=True)
+                fig_impressions = px.pie(brands_impressions, values='value', names='brands')
+                st.plotly_chart(fig_impressions, theme="streamlit", use_container_width=True)
 
+            with tab3:
+                sites = df['sites'].unique()
+                sites_impressions_tmp = []
+                
+                for site in sites:
+                    value = df[df.sites == site]["Viewable impressions (fact)"].sum()
+                    sites_impressions_tmp.append(value)
 
+                sites_impressions = pd.DataFrame({'site': sites, 'value': sites_impressions_tmp})
+
+                fig_impressions_site = px.pie(sites_impressions, values='value', names='site')
+                st.plotly_chart(fig_impressions_site, theme="streamlit", use_container_width=True)
+                
 
 
     with tab_private:
