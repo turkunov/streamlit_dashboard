@@ -2,13 +2,15 @@ import streamlit as st
 from streamlit.components.v1 import html
 import plotly.express as px
 import numpy as np
-from components.general_stats_tab import total_stats_component
+import random
+from components.general_stats_tab import total_stats_component, hDivider, \
+    iouWSlider
 from components.individual_stats_tab import selector_component, overview_component, \
     hist_selector_component, timeSer_selector_component, additionalTimeSer_selector
 from utils.preprocessing import filter_df, strDateToDatetime, preprocess_percentage_cols, \
     replaceAndRemNaN, generateAdCosts, distinguishBadRows, highlightRows
 from utils.scrapers import holidays_lookup
-from utils.custom_metrics import cumret, vei
+from utils.custom_metrics import cumret, vei, iou
 import pandas as pd
 from datetime import datetime
 
@@ -40,6 +42,8 @@ holidays_df = get_holidays()
 df = None # needed init. If dataframe is not uploaded -> avoid plotting
 if 'relRequired' not in st.session_state:
     st.session_state['relRequired'] = False
+if 'iouWeights' not in st.session_state:
+    st.session_state['iouWeights'] = None
 if 'data' not in st.session_state:
     st.session_state['data'] = None
 
@@ -88,22 +92,80 @@ def main():
             tooltips_df = pd.DataFrame(badRows2Errs.values)
             tooltips_df.columns = ['errors']
             general_df = pd.concat([tooltips_df, df], axis=1)
-            st.data_editor(
+            st.header('Обзор')
+            st.dataframe(
                 general_df.style \
                 .apply(lambda r: 
                        highlightRows(r,'errors','#f06451'),
                     axis=1),
-                column_config={
-                    "errors": st.column_config.ListColumn(
-                        "Ошибки ⓘ",
-                        help="Столбец подсвечивается красным, если в одном из \
-                            полей допущена ошибка. Выводит список найденных \
-                                ошибок, которые необходимо исправить.",
-                        width="medium",
-                    ),
-                },
-                num_rows="dynamic"
+                height=300
             )
+
+            distsTab, iouIndexTab = st.tabs(['Распределения по брендам', 'IOU'])
+
+            with distsTab:
+                # hist+pie charts
+                histCol, dividerCol , pieCol = st.columns([100,0.5,100])
+                
+                with histCol:
+                    selectedCol, sorting, primaCol = hist_selector_component(
+                        df, key="gen", t=histCol, extra_col=True)
+                    df_for_hist = pd.DataFrame(
+                        df.groupby(selectedCol)[primaCol].mean()
+                    ).reset_index()
+                    if sorting:
+                        df_for_hist = df_for_hist.sort_values(by=primaCol)
+
+                    st.plotly_chart(
+                        overview_component(df_for_hist, primaCol, selectedCol,
+                            title=f'{primaCol} по {selectedCol}', 
+                            diagType='hist'),
+                        theme="streamlit", use_container_width=True
+                    )
+                with dividerCol:
+                    hDivider(h=100,p=1)
+                with pieCol:
+                    selectedCol, sorting, primaCol = hist_selector_component(
+                        df, key="genPie", t=pieCol, extra_col=True, isPie=True)
+                    df_for_pie = pd.DataFrame(
+                        df.groupby(selectedCol)[primaCol].sum()
+                    ).reset_index()
+                    st.plotly_chart(
+                        overview_component(df_for_pie, primaCol, selectedCol,
+                            title=f'Вклад брендов в {primaCol}', 
+                            diagType='pie'),
+                        theme="streamlit", use_container_width=True
+                    )
+            with iouIndexTab:
+                st.markdown(
+                    '''
+                    <h4>Индекс репрезентативности брендов</h4>
+                    ''',unsafe_allow_html=True)
+                
+                if st.session_state['iouWeights'] is None:
+                    st.session_state['iouWeights'] = [
+                        random.uniform(0,1) for _ in range(len(
+                            df['Brands'].unique()
+                        ))
+                    ]
+                iouWSlider(df)
+
+                iouIndex = iou(df,
+                    np.array(st.session_state['iouWeights'])
+                )
+                if iouIndex is not None:
+                    iouIndex = pd.DataFrame(
+                        iouIndex
+                    ).reset_index()
+                    iouIndex.columns = ['brand', 'IOU']
+                    st.plotly_chart(
+                        overview_component(iouIndex, 'IOU', 'brand',
+                            title=f'IOU индекс по брендам', 
+                            diagType='hist'),
+                        theme="streamlit", use_container_width=True
+                    )
+                else:
+                    st.text('Репрезентативности брендов относительно их важности в норме')
     with tab_private:
         if df is not None:
             brand, site, format, status, q, id_, dt_int = selector_component(df)

@@ -1,4 +1,49 @@
 import streamlit as st
+import random
+
+def hDivider(h: int, p: int):
+    return st.markdown(f'''
+        <div style="padding:{p}px">
+            <div style="
+            border-right:1px;
+            border-top:none;border-bottom:none;
+            border-left:none;border-style:solid;
+            border-color:#26282e;position:absolute;
+            height:{h}px;left:50%;"></div>  
+        </div>
+    ''', unsafe_allow_html=True)
+
+def changeIouWeight(idx):
+    st.session_state['iouWeights'][
+        int(idx.replace('wSl',''))
+    ] = st.session_state[idx]
+
+def returnWweight(key):
+    return st.session_state['iouWeights'][
+        int(key.replace('wSl',''))
+    ]
+
+def iouWSlider(df):
+    brands = df['Brands'].sort_values().unique()
+    cols = st.columns(len(brands) // 2)
+    for i, col in enumerate(cols):
+        k = 'wSl'+str(i)
+        col.slider(f'Важность для "{brands[i]}":', min_value=0.0, 
+                    max_value=1.0, 
+                    value=returnWweight(k), 
+                    step=.01, key=k, 
+                    on_change=changeIouWeight,
+                    args=[k])
+        
+    nextCols = st.columns(len(brands) - len(brands) // 2)
+    for i, col in enumerate(nextCols):
+        k = 'wSl'+str(i+len(cols))
+        col.slider(f'Важность для "{brands[i+len(cols)]}":', min_value=0.0, 
+                    max_value=1.0, 
+                    value=returnWweight(k), 
+                    step=.01, key=k, 
+                    on_change=changeIouWeight,
+                    args=[k])
 
 def total_stats_component(df):
     cols2desc = {
@@ -8,7 +53,7 @@ def total_stats_component(df):
         'Impressions (delta)': {'label': '$\\Delta_{показов}$'},
         'Click (fact)': {'label': 'Клики:', 'value': f"{round(df['Click (fact)'].mean() // 1000, 2)}k"},
         'cost':  {'label': 'Расходы:', 'value': f"RUB {round(df['cost'].mean() // 1000, 2)}k"},
-        'cpc': {'label': 'CPC:', 'value': f"RUB {round((df['cost'] / df['Click (fact)']).mean(), 2)}"}
+        'cpc': {'label': 'CPC:', 'value': f"RUB {round(df['cpm'].mean(), 2)}"}
         # 'cum_ret': '$\overline{\\text{cum-ret}}$:'+f"{round(df['cum_ret'].mean() * 100, 2)}%",
         # 'vei': '$\overline{vei}$:'+f"{round(df['vei'].mean() * 100, 2)}%",
     }
@@ -18,17 +63,6 @@ def total_stats_component(df):
     cols = st.columns(3)
     for i, col in enumerate(cols):
         cnt = col.container(height=120)
-        # adding button linking a metric with its explanation in the docs
-        """if total_cols[i] in ['cum_ret','vei']:
-            cnt.markdown(f'''
-            <div style="display:flex;justify-content:left;align-items:center;margin-bottom:10px;">
-                <a style="display:block;width:50%;border-radius:25% 10%;text-decoration:none;color:#adadad;text-align:center;background:#262730;cursor:pointer;" href="/metrics#{total_cols[i]}">
-                    ℹ
-                </a>
-            </div>
-             <hr style="margin-bottom:5px;margin-top:5px" />
-            ''',unsafe_allow_html=True)"""
-
         # highlight delta with green
         if total_cols[i] in ['Impressions (delta)']:
             delta = f"{round(df['Impressions (delta)'].mean() * 100, 2)}%"

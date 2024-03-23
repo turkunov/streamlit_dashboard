@@ -60,8 +60,10 @@ def iou(df: pd.DataFrame, w: np.ndarray):
 
     # если один из брендов ниже эксремального значения (за пределами 90% значений)
     if np.any(weighted_presence < CI[0]): 
-        return np.log10(brand_presence.shape[1] / (total_presence + 1e-12)) # расчет IOU
-     
+        return np.log10(brand_presence.shape[1] / (weighted_presence + 1e-12)) # расчет IOU
+    else:
+        return None
+    
 def vei(df: pd.DataFrame):
     """
     Viewer Engagement Index

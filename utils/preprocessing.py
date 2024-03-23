@@ -22,6 +22,7 @@ def strDateToDatetime(df: pd.DataFrame):
 
 def generateAdCosts(df: pd.DataFrame):
     df['cost'] = np.random.randint(15_000, 500_000, (df.shape[0],))
+    df['cpm'] = (df['cost'] / df['Click (fact)'])
     return df
 
 def distinguishBadRows(row):

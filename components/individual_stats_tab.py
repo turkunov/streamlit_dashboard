@@ -48,20 +48,64 @@ def selector_component(df: pd.DataFrame):
         
     return brand, site, format, status, q, id_, dt_int
 
-def hist_selector_component(df: pd.DataFrame, key: int, t):
-    groupByCols = df.columns[
+def hist_selector_component(df: pd.DataFrame, key: str = None, t = None, **kwargs):
+    primaryCol = None
+    try:
+        isPie = kwargs['isPie']
+    except:
+        isPie = False
+    try:
+        _ = kwargs['extra_col']
+        metricCols = df.columns[df.columns.str.lower().str.contains(
+            r'\%|impres|reach|click|viewa|vei|cum_ret|cost|cpm')]
+        groupByCols = df.columns[df.columns.str.lower().str.contains('brands')]
+        if t is not None:
+            col1,col2 = t.columns([1,1])
+        else:
+            col1,col2 = st.columns([1,1])
+        with col1:
+            selectedCol = st.selectbox(
+                'Столбец для группировки',
+                groupByCols, 
+                key=key+'2', 
+                format_func=lambda x: f'Столбец "{x}"'
+            )
+        with col2:
+            primaryCol = st.selectbox(
+                'Метрика для изучения',
+                metricCols, key=key+'1', format_func=lambda x: f'Метрика "{x}"'
+            )
+    except:
+        groupByCols = df.columns[
         (df.nunique().values < 15) & 
         ~df.columns.str.lower().str.contains(
             r'\%|brands|date|cum|vei|duration|skippable|rotation')]
-    col1,col2 = t.columns([1,1])
-    with col1:
-        selectedCol = t.selectbox(
-            'Выберите столбец для группировки',
-            groupByCols, key=key+'1', format_func=lambda x: f'Столбец "{x}"'
-        )
-    with col2:
-        sorting = t.checkbox('Сортировка', key=key+'2')
-    return selectedCol, sorting
+        if t is not None:
+            selectedCol = t.selectbox(
+                'Столбец для группировки',
+                groupByCols, 
+                key=key+'2', 
+                format_func=lambda x: f'Столбец "{x}"'
+            )
+        else:
+            selectedCol = st.selectbox(
+                'Столбец для группировки',
+                groupByCols, 
+                key=key+'2', 
+                format_func=lambda x: f'Столбец "{x}"'
+            )
+
+    sorting = None
+    if not isPie:
+        if t is not None:
+            sorting = t.checkbox('Сортировка', key=key+'3')
+        else:
+            sorting = st.checkbox('Сортировка', key=key+'3')
+    
+    if primaryCol is None:
+        return selectedCol, sorting
+    else:
+        return selectedCol, sorting, primaryCol
 
 def timeSer_selector_component(df: pd.DataFrame, key: int, t = None):
     groupByCols = df.columns[
@@ -134,6 +178,13 @@ def overview_component(df = None, y = None, x = None, aggCol = None,
             width=275 if kwargs['size'] == 'sm' else 512,
             height=275 if kwargs['size'] == 'sm' else 512
         )
+    elif diagType == 'pie':
+        fig = px.pie(df, values=y, names=x,
+            title=title,
+            hover_data=[x],
+            # labels={'lifeExp':'life expectancy'}
+        )
+        fig.update_traces(textposition='inside', textinfo='percent+label')
     elif diagType == 'timeSer':
         fig = px.area(df, x=x, y=y,
               color=aggCol,
