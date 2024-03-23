@@ -4,11 +4,12 @@ import plotly.express as px
 import numpy as np
 import random
 from components.general_stats_tab import total_stats_component, hDivider, \
-    iouWSlider
+    iouWSlider, timerSerSelector, timerSerGraph
 from components.individual_stats_tab import selector_component, overview_component, \
     hist_selector_component, timeSer_selector_component, additionalTimeSer_selector
 from utils.preprocessing import filter_df, strDateToDatetime, preprocess_percentage_cols, \
-    replaceAndRemNaN, generateAdCosts, distinguishBadRows, highlightRows
+    replaceAndRemNaN, generateAdCosts, distinguishBadRows, highlightRows, \
+    getDuration
 from utils.scrapers import holidays_lookup
 from utils.custom_metrics import cumret, vei, iou
 import pandas as pd
@@ -19,6 +20,7 @@ def full_df_preprocess(df):
     df = replaceAndRemNaN(df)
     df = strDateToDatetime(df)
     df = preprocess_percentage_cols(df)
+    df = getDuration(df)
 
     # adding auxiliary metrics to the table
     df = cumret(df)
@@ -104,6 +106,15 @@ def main():
             distsTab, iouIndexTab = st.tabs(['Распределения по брендам', 'IOU'])
 
             with distsTab:
+                # custom time series for general tab
+                selectedMetric = timerSerSelector(df)
+                timeSerDf = pd.pivot_table(
+                    df, values=selectedMetric, index='Stop date', columns=['Brands'], 
+                    aggfunc='mean'
+                ).reset_index()
+                
+                timerSerGraph(timeSerDf, f'Динамика {selectedMetric} по брендам')
+
                 # hist+pie charts
                 histCol, dividerCol , pieCol = st.columns([100,0.5,100])
                 
@@ -201,7 +212,7 @@ def main():
                         with tsCol2:
                             mainTimeCol = additionalTimeSer_selector(groupbyCol,i+1)
                         tab.plotly_chart(
-                            overview_component(filtered_df, mainTimeCol, 'Start date',
+                            overview_component(filtered_df, mainTimeCol, 'Stop date',
                                 timeCol,diagType='timeSer',
                                 title=f'Распределение {mainTimeCol} по датам', 
                             ),
@@ -271,7 +282,7 @@ def main():
                         # time series graph
                         timeCol = timeSer_selector_component(filtered_df,i,tab)
                         tab.plotly_chart(
-                            overview_component(filtered_df, gpc, 'Start date',
+                            overview_component(filtered_df, gpc, 'Stop date',
                                 timeCol,diagType='timeSer',
                                 title=f'Распределение {gpc} по датам', 
                             ),

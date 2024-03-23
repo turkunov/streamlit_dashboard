@@ -15,6 +15,10 @@ def preprocess_percentage_cols(df: pd.DataFrame):
         lambda x: x.str.rstrip('%').astype('float64') / 100)
     return df
 
+def getDuration(df: pd.DataFrame):
+    df['days'] = (df['Stop date'] - df['Start date']).dt.days
+    return df
+
 def strDateToDatetime(df: pd.DataFrame):
     df['Start date'] = pd.to_datetime(df['Start date'], format='%d.%m.%Y')
     df['Stop date'] = pd.to_datetime(df['Stop date'], format='%d.%m.%Y')

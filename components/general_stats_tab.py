@@ -1,5 +1,24 @@
 import streamlit as st
-import random
+import plotly.express as px
+
+def timerSerSelector(df):
+    metricCols = df.columns[df.columns.str.lower().str.contains(
+        r'\%|impres|reach|click|viewa|vei|cum_ret|cost|cpm')]
+    metricSelector = st.selectbox(
+        'Столбец с метрикой',
+        metricCols, 
+        format_func=lambda x: f'Метрика "{x}"'
+    )
+    return metricSelector
+
+def timerSerGraph(df, title):
+    fig = px.bar(df, x="Stop date", y=df.columns,
+              hover_data={"Stop date": "|%b %d, %Y"},
+              title=title)
+    fig.update_xaxes(
+        dtick="M1",
+        tickformat="%b\n%Y")
+    st.plotly_chart(fig,theme="streamlit", use_container_width=True)
 
 def hDivider(h: int, p: int):
     return st.markdown(f'''
@@ -44,6 +63,8 @@ def iouWSlider(df):
                     step=.01, key=k, 
                     on_change=changeIouWeight,
                     args=[k])
+
+
 
 def total_stats_component(df):
     cols2desc = {
