@@ -89,7 +89,8 @@ def main():
             tooltips_df.columns = ['errors']
             general_df = pd.concat([tooltips_df, df], axis=1)
             
-            background_col = general_df.keys()[12:36]
+            background_col = list(general_df.keys()[12:20]) + list(general_df.keys()[33:36])
+
             general_df = general_df.style.background_gradient(cmap='YlGn', subset=background_col)
             st.write("### Обзор", general_df)
 
