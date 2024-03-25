@@ -10,6 +10,7 @@ from components.individual_stats_tab import selector_component, overview_compone
 from utils.preprocessing import filter_df, strDateToDatetime, preprocess_percentage_cols, \
     replaceAndRemNaN, generateAdCosts, distinguishBadRows, highlightRows, \
     getDuration
+from utils.pdfGen import exportToPDF
 from utils.scrapers import holidays_lookup
 from utils.custom_metrics import cumret, vei, iou
 import pandas as pd
@@ -87,6 +88,7 @@ def main():
         </p>
     ''', unsafe_allow_html=True)
     tab_main, tab_private = st.tabs(["Дашборд по общим данным", "Дашборд по брендам и кампаниям"])
+    mainPageImgBuffers = []
     with tab_main:
         if df is not None:
             total_stats_component(df)
@@ -126,13 +128,16 @@ def main():
                     ).reset_index()
                     if sorting:
                         df_for_hist = df_for_hist.sort_values(by=primaCol)
-
+                    histGraph = overview_component(df_for_hist, primaCol, selectedCol,
+                        title=f'{primaCol} по {selectedCol}', 
+                        diagType='hist')
                     st.plotly_chart(
-                        overview_component(df_for_hist, primaCol, selectedCol,
-                            title=f'{primaCol} по {selectedCol}', 
-                            diagType='hist'),
+                        histGraph,
                         theme="streamlit", use_container_width=True
                     )
+                    # mainPageImgBuffers.append(histGraph)
+                    # exportToPDF('<h1>Hello world!</h1>',mainPageImgBuffers)
+
                 with dividerCol:
                     hDivider(h=100,p=1)
                 with pieCol:
@@ -150,9 +155,13 @@ def main():
             with iouIndexTab:
                 st.markdown(
                     '''
-                    <h4>Индекс репрезентативности брендов</h4>
+                    <h4>Индекс нерепрезентативности брендов</h4>
+                    <div style="display:flex;justify-content:right;align-items:center;margin-bottom:10px;position:relative;top:-5.8rem;">
+                        <a style="display:block;width:40px;height:40px;border-radius:25% 10%;text-decoration:none;color:#adadad;text-align:center;vertical-align:middle;line-height:40px;background:#262730;cursor:pointer;" href="/metrics#iou">
+                           <p>ℹ</p>
+                        </a>
+                    </div>
                     ''',unsafe_allow_html=True)
-                
                 if st.session_state['iouWeights'] is None:
                     st.session_state['iouWeights'] = [
                         random.uniform(0,1) for _ in range(len(
@@ -205,6 +214,35 @@ def main():
                             theme="streamlit", use_container_width=True
                         )
 
+                        # impressions gauge plot
+                        impressionCols = ['Impression (plan)', 'Impressions (fact)', 'Выполнение плана показов']
+                        viewCols = ['Viewable impressions (fact)', 'Viewability rate % (fact)', 'Видимость показов']
+                        cnt = tab.container(height=300,border=False)
+                        gaugeCol1, gaugeCol2 = cnt.columns(2)
+                        with gaugeCol1:
+                            st.plotly_chart(
+                                overview_component(
+                                    x=filtered_df[impressionCols[1]].mean() // 1000,
+                                    diagType='gauge',
+                                    title=impressionCols[2],
+                                    delta={'reference': filtered_df[impressionCols[0]].mean() // 1000},
+                                    gauge={'axis': {'range': [None,filtered_df[impressionCols[0]].mean() // 1000]}},
+                                    size='sm'
+                                )
+                            )
+                        # views gauge plot
+                        with gaugeCol2:
+                            st.plotly_chart(
+                                overview_component(
+                                    x=(filtered_df[viewCols[1]]*filtered_df[viewCols[0]]).mean() // 1000,
+                                    diagType='gauge',
+                                    title=viewCols[2],
+                                    delta={'reference':filtered_df[viewCols[0]].mean() // 1000},
+                                    gauge={'axis': {'range': [None,filtered_df[viewCols[0]].mean() // 1000]}},
+                                    size='sm'
+                                )
+                            )
+
                         #time series plot
                         tsCol1, tsCol2 = tab.columns(2)
                         with tsCol1:
@@ -245,36 +283,6 @@ def main():
                                     title=f'{gpc[i]} по {selectedCol}', 
                                     diagType='hist'),
                                 theme="streamlit", use_container_width=True
-                            )
-                        
-                        tab.divider()
-                        # impressions gauge plot
-                        impressionCols = ['Impression (plan)', 'Impressions (fact)', 'Выполнение плана показов']
-                        viewCols = ['Viewable impressions (fact)', 'Viewability rate % (fact)', 'Видимость показов']
-                        cnt = tab.container(height=300,border=False)
-                        gaugeCol1, gaugeCol2 = cnt.columns(2)
-                        with gaugeCol1:
-                            st.plotly_chart(
-                                overview_component(
-                                    x=filtered_df[impressionCols[1]].mean() // 1000,
-                                    diagType='gauge',
-                                    title=impressionCols[2],
-                                    delta={'reference': filtered_df[impressionCols[0]].mean() // 1000},
-                                    gauge={'axis': {'range': [None,filtered_df[impressionCols[0]].mean() // 1000]}},
-                                    size='sm'
-                                )
-                            )
-                        # views gauge plot
-                        with gaugeCol2:
-                            st.plotly_chart(
-                                overview_component(
-                                    x=(filtered_df[viewCols[1]]*filtered_df[viewCols[0]]).mean() // 1000,
-                                    diagType='gauge',
-                                    title=viewCols[2],
-                                    delta={'reference':filtered_df[viewCols[0]].mean() // 1000},
-                                    gauge={'axis': {'range': [None,filtered_df[viewCols[0]].mean() // 1000]}},
-                                    size='sm'
-                                )
                             )
                             
                     else: # if it is CTR or reach

@@ -57,7 +57,9 @@ def hist_selector_component(df: pd.DataFrame, key: str = None, t = None, **kwarg
     try:
         _ = kwargs['extra_col']
         metricCols = df.columns[df.columns.str.lower().str.contains(
-            r'\%|impres|reach|click|viewa|vei|cum_ret|cost|cpm|days')]
+            r'\%|impres|reach|click|viewa|vei|cum_ret|cost|cpm|days') &
+            ~df.columns.str.lower().str.contains(
+            r'^\d+\%')]
         groupByCols = df.columns[df.columns.str.lower().str.contains('brands')]
         if t is not None:
             col1,col2 = t.columns([1,1])

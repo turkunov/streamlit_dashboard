@@ -2,8 +2,13 @@ import streamlit as st
 import plotly.express as px
 
 def timerSerSelector(df):
-    metricCols = df.columns[df.columns.str.lower().str.contains(
-        r'\%|impres|reach|click|viewa|vei|cum_ret|cost|cpm')]
+    metricCols = df.columns[
+        df.columns.str.lower().str.contains(
+        r'\%|impres|reach|click|viewa|vei|cum_ret|cost|cpm') &
+        ~df.columns.str.lower().str.contains(
+            r'^\d+\%'
+        )
+    ]
     metricSelector = st.selectbox(
         'Столбец с метрикой',
         metricCols, 
@@ -74,7 +79,7 @@ def total_stats_component(df):
         'Impressions (delta)': {'label': '$\\Delta_{показов}$'},
         'Click (fact)': {'label': 'Клики:', 'value': f"{round(df['Click (fact)'].mean() // 1000, 2)}k"},
         'cost':  {'label': 'Расходы:', 'value': f"RUB {round(df['cost'].mean() // 1000, 2)}k"},
-        'cpc': {'label': 'CPC:', 'value': f"RUB {round(df['cpm'].mean(), 2)}"}
+        'cpc': {'label': 'CPC:', 'value': f"RUB {round(df['cpc'].mean(), 2)}"}
         # 'cum_ret': '$\overline{\\text{cum-ret}}$:'+f"{round(df['cum_ret'].mean() * 100, 2)}%",
         # 'vei': '$\overline{vei}$:'+f"{round(df['vei'].mean() * 100, 2)}%",
     }
@@ -91,7 +96,7 @@ def total_stats_component(df):
             cnt.markdown(
                 cols2desc[total_cols[i]]['label']+
                 f'''
-                    <h1 style=color:{"#64f57a" if delta_than_half > 0 else "#f56964"};font-weight:100;display:block;position:relative;top:-2.5rem>
+                    <h1 style=color:{"#64f57a" if delta_than_half > 0 else "#f56964"};font-weight:100;display:block;position:relative;top:-2.4rem>
                         {("+" if delta_than_half else "")+delta}
                     </h1>
                 ''', unsafe_allow_html=True
