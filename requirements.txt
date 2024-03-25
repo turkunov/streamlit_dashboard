@@ -6,3 +6,4 @@ scipy
 urllib3
 beautifulsoup4
 matplotlib
+fpdf
