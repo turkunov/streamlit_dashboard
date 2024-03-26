@@ -128,8 +128,10 @@ def main():
                     ).reset_index()
                     if sorting:
                         df_for_hist = df_for_hist.sort_values(by=primaCol)
+                    st.markdown(f'**{primaCol} по {selectedCol}**',
+                                help='Распределение метрики относительно брендов')
                     histGraph = overview_component(df_for_hist, primaCol, selectedCol,
-                        title=f'{primaCol} по {selectedCol}', 
+                        title='', 
                         diagType='hist')
                     st.plotly_chart(
                         histGraph,
@@ -139,16 +141,18 @@ def main():
                     # exportToPDF('<h1>Hello world!</h1>',mainPageImgBuffers)
 
                 with dividerCol:
-                    hDivider(h=100,p=1)
+                    hDivider(h=600,p=1)
                 with pieCol:
                     selectedCol, sorting, primaCol = hist_selector_component(
                         df, key="genPie", t=pieCol, extra_col=True, isPie=True)
                     df_for_pie = pd.DataFrame(
                         df.groupby(selectedCol)[primaCol].sum()
                     ).reset_index()
+                    st.markdown(f'**Вклад брендов в {primaCol}**',
+                                 help='Доли сумм метрики по брендам в общей сумме')
                     st.plotly_chart(
                         overview_component(df_for_pie, primaCol, selectedCol,
-                            title=f'Вклад брендов в {primaCol}', 
+                            title='', 
                             diagType='pie'),
                         theme="streamlit", use_container_width=True
                     )
@@ -364,10 +368,21 @@ def main():
                 cont = st.container(height=317)
                 filtered_holidays = holidays_df[
                     (holidays_df['date'].dt.month.isin(filtered_df['Start date'].dt.month.values))]
+                filtered_holidays['ID кампаний'] =  filtered_holidays['date'].apply(lambda d: 
+                                                                                    filtered_df[
+                                                                                        filtered_df['Start date'].dt.month == d.month
+                                                                                    ]['id'].values) 
                 filtered_holidays['date'] = filtered_holidays['date'].dt.strftime('%d/%m')
-                filtered_holidays.columns=['Праздник','Дата (д/м)']
+                filtered_holidays.columns=['Праздник','Дата (д/м)','ID кампаний']
                 cont.markdown('Праздники, приходящиеся на кампанию(и):')
-                cont.data_editor(filtered_holidays.set_index('Дата (д/м)'),
+                cont.data_editor(
+                    filtered_holidays.set_index('ID кампаний'),
+                    column_config={
+                        "ID кампаний": st.column_config.Column(
+                            help="ID кампаний, на которые приходится праздник",
+                            width="small",
+                        )
+                    },
                     use_container_width=True)
             with col2:
                 cont_1 = st.container(height=150)

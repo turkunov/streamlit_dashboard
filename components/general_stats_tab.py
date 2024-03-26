@@ -33,6 +33,7 @@ def hDivider(h: int, p: int):
             border-top:none;border-bottom:none;
             border-left:none;border-style:solid;
             border-color:#26282e;position:absolute;
+            opacity: 0.33;
             height:{h}px;left:50%;"></div>  
         </div>
     ''', unsafe_allow_html=True)
