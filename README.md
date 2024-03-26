@@ -1,6 +1,7 @@
 # streamlit_dashboard
 
 **What is this repository about?**
+
 This repository shows the **power of Streamlit** and how it could be easily **utilized as a dashboard** tool. The app **design is** highly **modular** and offers a **wide range of components** that could be migrated to your own Streamlit projects with ease!
 
 This repository also contains a solution to the hackathon organised by HSE (https://www.hse.ru/) & H&N (https://hnrus.com/).
