@@ -57,26 +57,34 @@ def hist_selector_component(df: pd.DataFrame, key: str = None, t = None, **kwarg
     try:
         _ = kwargs['extra_col']
         metricCols = df.columns[df.columns.str.lower().str.contains(
-            r'\%|impres|reach|click|viewa|vei|cum_ret|cost|cpm|days') &
+            r'\%|impres|reach|click|viewa|vei|cum_ret|cost|cpc|days') &
             ~df.columns.str.lower().str.contains(
             r'^\d+\%')]
         groupByCols = df.columns[df.columns.str.lower().str.contains('brands')]
         if t is not None:
             col1,col2 = t.columns([1,1])
+            col3,col4 = t.columns([1,1])
         else:
-            col1,col2 = st.columns([1,1])
-        with col1:
-            selectedCol = st.selectbox(
-                'Столбец для группировки',
-                groupByCols, 
-                key=key+'2', 
-                format_func=lambda x: f'Столбец "{x}"'
-            )
-        with col2:
-            primaryCol = st.selectbox(
-                'Метрика для изучения',
-                metricCols, key=key+'1', format_func=lambda x: f'Метрика "{x}"'
-            )
+            col1,col2 = st.columns([1,5])
+            col3,col4 = st.columns([1,1])
+
+        col1.markdown('Группировка по:')
+        selectedCol = col2.selectbox(
+            '',
+            groupByCols, 
+            key=key+'2',
+            label_visibility="collapsed",
+            format_func=lambda x: f'Столбец "{x}"'
+        )
+
+        col3.markdown('Метрика:')
+        primaryCol = col4.selectbox(
+        '',
+        metricCols, key=key+'1', 
+        label_visibility="collapsed",
+        format_func=lambda x: f'Метрика "{x}"'
+        )
+
     except:
         groupByCols = df.columns[
         (df.nunique().values < 15) & 
