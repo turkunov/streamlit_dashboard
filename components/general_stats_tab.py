@@ -73,13 +73,17 @@ def iouWSlider(df):
 
 
 def total_stats_component(df):
+    total_cost = round(df['cost'].sum() // 1000, 2)
     cols2desc = {
         'Reach 1+ (fact)': {'label': 'Охват', 'value': f"{round(df['Reach 1+ (fact)'].mean() // 1000, 2)}k"},
         'Viewable impressions (fact)': {'label': 'Показы', 
             'value': f"{round(df['Viewable impressions (fact)'].mean() // 1000, 2)}k"},
         'Impressions (delta)': {'label': '$\\Delta_{показов}$'},
         'Click (fact)': {'label': 'Клики:', 'value': f"{round(df['Click (fact)'].mean() // 1000, 2)}k"},
-        'cost':  {'label': 'Расходы:', 'value': f"RUB {round(df['cost'].mean() // 1000, 2)}k"},
+        'cost':  {'label': ['Расходы (медиана):','Расходы (общие):'], 'value': [f"RUB {round(df['cost'].median() // 1000, 2)}k", 
+                                                                                f"RUB {
+                                                                                    str(total_cost)+'k' if total_cost < 1000 else str(total_cost // 1000)+'m'
+                                                                                }"]},
         'cpc': {'label': 'CPC:', 'value': f"RUB {round(df['cpc'].mean(), 2)}"}
         # 'cum_ret': '$\overline{\\text{cum-ret}}$:'+f"{round(df['cum_ret'].mean() * 100, 2)}%",
         # 'vei': '$\overline{vei}$:'+f"{round(df['vei'].mean() * 100, 2)}%",
@@ -89,6 +93,7 @@ def total_stats_component(df):
     # first row
     cols = st.columns(3)
     for i, col in enumerate(cols):
+        print(col)
         cnt = col.container(height=120)
         # highlight delta with green
         if total_cols[i] in ['Impressions (delta)']:
@@ -104,15 +109,20 @@ def total_stats_component(df):
             )
         else:
             cnt.metric(cols2desc[total_cols[i]]['label'], cols2desc[total_cols[i]]['value'])
-            # cnt.markdown(cols2desc[total_cols[i]])
     
     cols_ = st.columns(3)
     for i, col in enumerate(cols_):
-        cnt = col.container(height=120)
-        cnt.metric(
-            cols2desc[total_cols[i+3]]['label'], 
-            cols2desc[total_cols[i+3]]['value'],
-            help='Для каждой рекламы была сгенерирована \
-                сумма затрат из интервала [15k; 500k]' if 'cost' \
-                    in total_cols[i+3] else None
-        )
+        cnt = col.container(height=150)
+        if total_cols[i+3] in ['cost']:
+            cnt.metric(cols2desc[total_cols[i+3]]['label'][0], 
+                       cols2desc[total_cols[i+3]]['value'][0],
+                       help='Для каждой рекламы была сгенерирована \
+                сумма затрат из интервала [15k; 500k]')
+            cnt.metric(cols2desc[total_cols[i+3]]['label'][1], 
+                       cols2desc[total_cols[i+3]]['value'][1])
+        else:
+            
+            cnt.metric(
+                cols2desc[total_cols[i+3]]['label'], 
+                cols2desc[total_cols[i+3]]['value'],
+            )
