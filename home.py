@@ -95,10 +95,17 @@ def main():
             badRows2Errs = df.apply(distinguishBadRows, axis=1)
             tooltips_df = pd.DataFrame(badRows2Errs.values)
             tooltips_df.columns = ['errors']
-            general_df = pd.concat([tooltips_df, df], axis=1)
+            general_df = pd.concat([df, tooltips_df], axis=1)
+            general_df_show = general_df.copy()
+            df_key_show = ["id", "Brands", "Viewable impressions (fact)", "Reach 1+ (fact)", "Click (fact)", "cost", "cpc", "errors"]
+            general_df_show["cpc"] = general_df_show["cpc"].apply(lambda x: round(x))
+            for df_key in general_df_show.keys():
+                if df_key not in df_key_show:
+                    del general_df_show[df_key]
+
             st.header('Обзор')
             st.dataframe(
-                general_df.style \
+                general_df_show.style \
                 .apply(lambda r: 
                        highlightRows(r,'errors','#f06451'),
                     axis=1),
