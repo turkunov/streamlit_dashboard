@@ -81,8 +81,8 @@ def total_stats_component(df):
         'Impressions (delta)': {'label': '$\\Delta_{показов}$'},
         'Click (fact)': {'label': 'Клики:', 'value': f"{round(df['Click (fact)'].mean() // 1000, 2)}k"},
         'cost':  {'label': ['Расходы (медиана):','Расходы (общие):'], 'value': [f"RUB {round(df['cost'].median() // 1000, 2)}k", 
-                                                                                f"RUB {
-                                                                                    str(total_cost)+'k' if total_cost < 1000 else str(total_cost // 1000)+'m'
+                                                                                f"RUB { \
+                                                                                    str(total_cost)+'k' if total_cost < 1000 else str(total_cost // 1000)+'m' \
                                                                                 }"]},
         'cpc': {'label': 'CPC:', 'value': f"RUB {round(df['cpc'].mean(), 2)}"}
         # 'cum_ret': '$\overline{\\text{cum-ret}}$:'+f"{round(df['cum_ret'].mean() * 100, 2)}%",
