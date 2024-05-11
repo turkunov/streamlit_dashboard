@@ -1,17 +1,24 @@
 # streamlit_dashboard
 
-**What is this repository about?**
+**Демо приложения**
+* Интерактивное демо: https://hn-dashboard.streamlit.app/
+* Видео-демо на <10 минут: https://youtu.be/iZd1ZOZ89pY?si=fmtRjhFq_OE4cKf1
 
-This repository shows the **power of Streamlit** and how it could be easily **utilized as a dashboard** tool. The app **design is** highly **modular** and offers a **wide range of components** that could be migrated to your own Streamlit projects with ease!
+**О чем этот репозиторий?**
 
-This repository also contains a solution to the hackathon organised by HSE (https://www.hse.ru/) & H&N (https://hnrus.com/).
+В этом репозитории продемонстрировано приложение мощного фреймворка "Streamlit", в частности, как с его использованием можно создать полноценный **многостраничный дашборд**. Дизайн приложения отличается **модулярностью** и предлагает **широкий спектр компонентов и утилит**, которые можно без труда перенести в ваши проекты с использованием Streamlit.
 
-**Setup**
-* Copy the repository to local machine
-* Install Python
-* Run `pip install -r requirements.txt` inside the main project directory
-* Run `streamlit run home.py` inside the main project directory
+Репозиторий также посвящен созданию решения для соревнования "Интеграф" на треке дата-коммуникаций от ВШЭ (https://www.hse.ru/) и H&N (https://hnrus.com/).
 
-**Demos**
-* Interactive demo: https://hn-dashboard.streamlit.app/
-* Under 10mins video demo (in Russian): https://youtu.be/iZd1ZOZ89pY?si=fmtRjhFq_OE4cKf1
+**Процесс сборки дашборда с помощью Docker:**
+* Установите Docker с помощью Docker Desktop: https://www.docker.com/products/docker-desktop/
+* Склонируйте локально этот репозиторий 
+* Выполните `docker build -t dashboard .` внутри директории с файлами из склонированного репозитория. Дождитесь завершения сборки 
+* Выполните `docker run -p 8501:8501 dashboard` внутри той же директории. Эта команда соберет дашборд, который после будет доступен по ссылке: http://localhost:8501/ 
+
+**Сборка без Docker:**
+* Склонируйте локально репозиторий
+* Установите Python версии 3.9+ и перейдите в директорию с приложением
+* Выполните `python3 -m pip install --upgrade pip` внутри директории
+* Выполните `pip3 install -r requirements.txt` внутри директории
+* Выполните `streamlit run home.py` внутри директории и перейдите по ссылке на собранный дашборд
